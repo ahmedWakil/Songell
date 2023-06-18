@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from network import RNN
+from network import LSTMModel
 from dataloader import Data
 from vcodec import Vcodec
 import json
@@ -10,7 +11,7 @@ import time
 import math
 
 PATH = '../data/names/*.txt'
-IGNORE = {'1', '/', '\xa0', '\n'}
+IGNORE = {'1', '/', '\xa0', '\n', '\r', ' '}
 
 
 def timeSince(since):
@@ -21,32 +22,10 @@ def timeSince(since):
     return '%dm %ds' % (m, s)
 
 
-def train(model: RNN, criterion, optimizer, category_tensor, input_tensor, target_tensor):
-    target_tensor.unsqueeze_(-1)
-    word_length = input_tensor.size(0)
-    hidden = model.initHidden()
-
-    loss = torch.Tensor([0])
-    model.zero_grad()
-
-    for i in range(word_length):
-        # get each prediction and add to the loss at each time step
-        output, hidden = model(category_tensor, input_tensor[i], hidden)
-        L = criterion(output, target_tensor[i])
-        loss += L
-
-    # back propagation
-    loss.backward()
-    # opdate perameters
-    optimizer.step()
-
-    return output, loss.item()/input_tensor.size(0)
-
-
 if __name__ == '__main__':
     start = time.time()
 
-    n_iterations = 100000
+    n_iterations = 75000
     print_every = 5000
     plot_every = 500
     all_losses = []
@@ -54,13 +33,13 @@ if __name__ == '__main__':
     learning_rate = 0.0005
     momentum = 0.9
 
-    h_size = 256
+    h_size = 128
 
     data = Data(PATH, IGNORE, sos='$', eos='&')
     k_categories = len(data.all_categories)
     c_characters = len(data.all_chars)
 
-    model = RNN(c_characters, h_size, c_characters, k_categories)
+    model = LSTMModel(c_characters, h_size, c_characters, k_categories)
     criterion = nn.NLLLoss()
     optimizer = torch.optim.SGD(
         model.parameters(), lr=learning_rate, momentum=momentum)
@@ -72,8 +51,8 @@ if __name__ == '__main__':
         category_tensor = codec.catagoryTensor(category)
         word_tensor = codec.encodeWord(word)
         input_tensor, target_tensor = codec.inputTarget1DTensors(word_tensor)
-        output, loss = train(model, criterion, optimizer,
-                             category_tensor, input_tensor, target_tensor)
+        output, loss = model.trainWord(criterion, optimizer,
+                                       category_tensor, input_tensor, target_tensor)
         total_loss += loss
 
         if iteration % print_every == 0:

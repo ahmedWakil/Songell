@@ -2,7 +2,6 @@
     "sos": "$",
     "eos": "&",
     "char_set": [
-        " ",
         "'",
         ",",
         "-",
@@ -109,5 +108,5 @@
         "Spanish",
         "Vietnamese"
     ],
-    "h_size": 256
+    "h_size": 128
 }

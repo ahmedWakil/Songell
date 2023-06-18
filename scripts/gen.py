@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from network import RNN
+from network import LSTMModel
 from dataloader import Data
 from vcodec import Vcodec
 import json
@@ -54,7 +55,7 @@ if __name__ == '__main__':
 
     codec = Vcodec(char_set, categories)
 
-    model = RNN(N, h_size, N, K)
+    model = LSTMModel(N, h_size, N, K)
     model.load_state_dict(torch.load('../model/learned-weights.pth'))
     model.eval()
 
@@ -67,9 +68,9 @@ if __name__ == '__main__':
     #     current = new
     #     print(new)
 
-    sample('English', model, codec, char_set)
-    sample('English', model, codec, char_set)
-    sample('English', model, codec, char_set)
-    sample('German', model, codec, char_set)
-    sample('French', model, codec, char_set)
-    sample('Japanese', model, codec, char_set)
+    print(model.sampleWord('Russian', codec, char_set))
+    print(model.sampleWord('English', codec, char_set))
+    print(model.sampleWord('English', codec, char_set))
+    print(model.sampleWord('German', codec, char_set))
+    print(model.sampleWord('French', codec, char_set))
+    print(model.sampleWord('Spanish', codec, char_set))
