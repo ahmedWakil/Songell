@@ -100,14 +100,16 @@ class LSTMModel(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, k_catagories):
         super(LSTMModel, self).__init__()
         self.hiddensize = hidden_size
-        self.lstm_layer = nn.LSTM(k_catagories + input_size, hidden_size, 1)
+        self.context = nn.Linear(k_catagories+input_size, input_size)
+        self.lstm_layer = nn.LSTM(input_size, hidden_size, 1)
         self.fc = nn.Linear(hidden_size, output_size)
         self.dropout = nn.Dropout(0.1)
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, category, input, hidden, cell):
         input_combined = torch.cat((category, input), 1)
-        out, (hn, cn) = self.lstm_layer(input_combined, (hidden, cell))
+        out = self.context(input_combined)
+        out, (hn, cn) = self.lstm_layer(out, (hidden, cell))
         out = self.fc(out)
         out = self.dropout(out)
         out = self.softmax(out)
@@ -152,8 +154,12 @@ class LSTMModel(nn.Module):
 
             p = torch.exp(out)
 
-            topv, topi = out.topk(2)
-            topi = topi[0][random.randint(0, 1)]
+            if i == 0:
+                topv, topi = out.topk(25)
+                topi = topi[0][random.randint(0, 24)]
+            else:
+                topv, topi = out.topk(2)
+                topi = topi[0][random.randint(0, 1)]
             # print(f'topv: {topv}\ntopi: {topi}')
 
             letter = char_set[topi]
