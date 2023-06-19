@@ -1,52 +1,15 @@
+from argparse import ArgumentParser, Namespace
 import torch
-import torch.nn as nn
-from network import RNN
 from network import LSTMModel
-from dataloader import Data
 from vcodec import Vcodec
 import json
-import random
 
 
-def sample(category, model, codec, char_set):
+def generate(category, count=1):
 
-    max_length = 40
-    output_name = ''
-    input_tensor = codec.encodeWord('$')
-    category_tensor = codec.catagoryTensor(category)
-    hn = model.initHidden()
+    with open('../model/encoding-data.json', 'r', encoding='utf-8') as f:
+        encoding = json.load(f)
 
-    for i in range(max_length):
-        # print(f'Iteration number: {i}')
-        out, hn = model(category_tensor, input_tensor[0], hn)
-
-        p = torch.exp(out)
-
-        topv, topi = out.topk(1)
-        topi = topi[0][0]
-        # print(f'topv: {topv}\ntopi: {topi}')
-
-        letter = char_set[topi]
-        # print(f'prediction: {letter}')
-        if letter == eos:
-            break
-
-        input_tensor = codec.encodeWord(letter)
-        output_name += letter
-
-    print(f'category: {category}: {output_name}')
-
-    return output_name
-
-
-if __name__ == '__main__':
-
-    f = open('../model/encoding-data.json', 'r', encoding='utf-8')
-
-    encoding = json.load(f)
-
-    sos = encoding['sos']
-    eos = encoding['eos']
     categories = encoding['categories']
     char_set = encoding['char_set']
     h_size = encoding['h_size']
@@ -56,21 +19,57 @@ if __name__ == '__main__':
     codec = Vcodec(char_set, categories)
 
     model = LSTMModel(N, h_size, N, K)
-    model.load_state_dict(torch.load('../model/learned-weights.pth'))
+    try:
+        model.load_state_dict(torch.load('../model/learned-weights.pth'))
+    except FileNotFoundError:
+        print('A trained model was not found at location "/model/learned-weights.pth"')
     model.eval()
 
-    print(model)
+    samples = []
+    for i in range(count):
+        sample = model.sampleWord(category, codec)
+        samples.append(sample)
 
-    # current = ''
-    # new = ''
-    # while (current == new):
-    #     new = sample('Scottish', model, codec)
-    #     current = new
-    #     print(new)
+    return samples
 
-    print(model.sampleWord('Russian', codec, char_set))
-    print(model.sampleWord('English', codec, char_set))
-    print(model.sampleWord('English', codec, char_set))
-    print(model.sampleWord('German', codec, char_set))
-    print(model.sampleWord('French', codec, char_set))
-    print(model.sampleWord('Spanish', codec, char_set))
+
+def stringify(l: list, direction=1, seperator=' '):
+    output = '\n'
+    for item in l:
+        if direction == 1:
+            output += f'{item}{seperator} '
+        else:
+            output += f'{item}{seperator}\n'
+
+    return output
+
+
+def main():
+    with open('../model/encoding-data.json', 'r', encoding='utf-8') as f:
+        encoding = json.load(f)
+
+    categories = encoding['categories']
+
+    parser = ArgumentParser(
+        prog="Songell",
+        description="Generates Fantasy RPG style names based on a character level LSTM model")
+
+    parser.usage = "'category' [count]\n\nType -h for details"
+
+    parser.add_argument("category", type=str,
+                        help=f"The category to sample names from, model supports: {stringify(categories, seperator=',')}",)
+    parser.add_argument("count", type=int, default=1, nargs='?',
+                        help="The nummber of names to sample, default value is 1")
+
+    args: Namespace = parser.parse_args()
+
+    if args.category in categories:
+        samples = generate(args.category, args.count)
+        print(stringify(samples, direction=0, seperator=''))
+    else:
+        print(
+            f'Songell error: argument "category" invalid choice. Choose from: {stringify(categories, direction=0, seperator="")}')
+
+
+if __name__ == "__main__":
+    main()

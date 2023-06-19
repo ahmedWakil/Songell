@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import random
+from vcodec import Vcodec
 
 
 class RNN(nn.Module):
@@ -11,35 +12,17 @@ class RNN(nn.Module):
         # my model structure
         self.rnn_layer = nn.RNN(k_catagories+input_size,
                                 hidden_size, 1)
-        self.output = nn.Linear(k_catagories+hidden_size*2, output_size)
+        self.fc = nn.Linear(hidden_size, output_size)
         self.dropout = nn.Dropout(0.1)
         self.softmax = nn.LogSoftmax(dim=1)
 
-        # Waterloo prof's structure
-        # self.i2h = nn.Linear(k_catagories + input_size +
-        #                      hidden_size, hidden_size)
-        # self.i2o = nn.Linear(k_catagories + input_size +
-        #                      hidden_size, output_size)
-        # self.o2o = nn.Linear(hidden_size + output_size, output_size)
-        # self.dropout = nn.Dropout(0.1)
-        # self.softmax = nn.LogSoftmax(dim=1)
-
     def forward(self, category, input, hidden):
-        # my forward
+        # forward pass through the model
         input_combined = torch.cat((category, input), 1)
         output, hidden = self.rnn_layer(input_combined, hidden)
-        output = self.output(torch.cat((category, output, hidden), 1))
+        output = self.fc(output)
         output = self.dropout(output)
         output = self.softmax(output)
-
-        # Waterloo prof
-        # input_combined = torch.cat((category, input, hidden), 1)
-        # hidden = self.i2h(input_combined)
-        # output = self.i2o(input_combined)
-        # output_combined = torch.cat((hidden, output), 1)
-        # output = self.o2o(output_combined)
-        # output = self.dropout(output)
-        # output = self.softmax(output)
 
         return output, hidden
 
@@ -64,17 +47,17 @@ class RNN(nn.Module):
 
         return output, loss.item()/input_tensor.size(0)
 
-    def sampleWord(category, model, codec, char_set):
+    def sampleWord(self, category, codec: Vcodec):
 
         max_length = 40
         output_name = ''
-        input_tensor = codec.encodeWord('$')
+        input_tensor = codec.encodeWord(codec.sos)
         category_tensor = codec.catagoryTensor(category)
-        hn = model.initHidden()
+        hn = self.initHidden()
 
         for i in range(max_length):
             # print(f'Iteration number: {i}')
-            out, hn = model(category_tensor, input_tensor[0], hn)
+            out, hn = self(category_tensor, input_tensor[0], hn)
 
             p = torch.exp(out)
 
@@ -82,9 +65,9 @@ class RNN(nn.Module):
             topi = topi[0][0]
             # print(f'topv: {topv}\ntopi: {topi}')
 
-            letter = char_set[topi]
+            letter = codec.char_set[topi]
             # print(f'prediction: {letter}')
-            if letter == '&':
+            if letter == codec.eos:
                 break
 
             input_tensor = codec.encodeWord(letter)
@@ -139,38 +122,30 @@ class LSTMModel(nn.Module):
 
         return output, loss.item()/input_tensor.size(0)
 
-    def sampleWord(self, category, codec, char_set):
+    def sampleWord(self, category, codec: Vcodec, max_length=40):
 
-        max_length = 40
         output_name = ''
-        input_tensor = codec.encodeWord('$')
+        input_tensor = codec.encodeWord(codec.sos)
         category_tensor = codec.catagoryTensor(category)
         hn = self.initHidden()
         cn = self.initHidden()
 
         for i in range(max_length):
-            # print(f'Iteration number: {i}')
             out, hn, cn = self(category_tensor, input_tensor[0], hn, cn)
 
-            p = torch.exp(out)
-
             if i == 0:
-                topv, topi = out.topk(25)
-                topi = topi[0][random.randint(0, 24)]
+                topv, topi = out.topk(10)
+                topi = topi[0][random.randint(0, 9)]
             else:
                 topv, topi = out.topk(2)
                 topi = topi[0][random.randint(0, 1)]
-            # print(f'topv: {topv}\ntopi: {topi}')
 
-            letter = char_set[topi]
-            # print(f'prediction: {letter}')
-            if letter == '&':
+            letter = codec.char_set[topi]
+            if letter == codec.eos:
                 break
 
             input_tensor = codec.encodeWord(letter)
             output_name += letter
-
-        print(f'{category}:')
 
         return output_name
 

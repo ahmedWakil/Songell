@@ -3,7 +3,6 @@ import torch
 from dataloader import *
 import vcodec
 from network import RNN
-import train
 
 R_TEST_ALL = '../data/test-names/*.txt'
 R_TEST_ONE = "../data/test-names/Arabic.txt"
@@ -333,9 +332,6 @@ class Test(unittest.TestCase):
             sample_catagories, sample_word = data.randomTrainingSample()
             print(
                 f'{i}th iteration\nSample categories: {sample_catagories} Sample_word: {sample_word}')
-
-    def test_train_one(self):
-        pass
 
 
 if __name__ == '__main__':

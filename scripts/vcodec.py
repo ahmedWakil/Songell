@@ -3,10 +3,12 @@ import torch
 
 class Vcodec:
 
-    def __init__(self, encoding_range, all_categories=[]):
-        self.all_letters = encoding_range
+    def __init__(self, encoding_range, all_categories=[], sos='$', eos='&'):
+        self.char_set = encoding_range
         self.n_letters = len(encoding_range)
         self.category_map = self._buildCategoryMap(all_categories)
+        self.sos = sos
+        self.eos = eos
 
     def _buildCategoryMap(self, all_categories):
         category_map = {}
@@ -20,7 +22,7 @@ class Vcodec:
         vectorized_word = torch.zeros(len(word), 1, self.n_letters)
         matrix_i = 0
         for letter in word:
-            letter_index = self.all_letters.index(letter)
+            letter_index = self.char_set.index(letter)
             vectorized_word[matrix_i][0][letter_index] = 1
             matrix_i += 1
         return vectorized_word
@@ -30,7 +32,7 @@ class Vcodec:
         for vector in vectorized_word:
             bool_mask = vector == 1
             index = bool_mask.nonzero(as_tuple=True)
-            word = word + self.all_letters[index[1]]
+            word = word + self.char_set[index[1]]
         return word
 
     def catagoryTensor(self, category):
