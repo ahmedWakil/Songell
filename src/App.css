@@ -23,6 +23,10 @@
   transition: var(--main-transition);
 }
 
+.line-continer {
+  display: grid;
+}
+
 .selector-button:hover {
   transition: var(--main-transition);
   transform: translateY(-3px);

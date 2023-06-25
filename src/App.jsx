@@ -42,9 +42,9 @@ CategorySelector.propTypes = {
 function App() {
 
   const [categoryIndex, setCategoryIndex] = useState(0)
+  const [namesList, setNamesList] = useState(["", "", ""]);
 
   function categorySwitchHandler(index, direction) {
-    console.log(categoryIndex)
     if (direction === "left") {
       setCategoryIndex(index === 0 ? MODEL_DATA.categories.length - 1 : (index - 1) % MODEL_DATA.categories.length)
     } else if (direction === "right") {
@@ -52,16 +52,21 @@ function App() {
     }
   }
 
-  async function generateHandler(categoryIndex) {
-    const sampleList = [];
+  async function generateHandler(categoryIndex, num = 3) {
+    const sampledList = []
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < num; i++) {
       const sampleInference = await sample(categoryIndex, MODEL_DATA);
-      sampleList.push(sampleInference);
+      sampledList.push(sampleInference)
     }
 
-    console.log(sampleList)
+    console.log(`Category: ${MODEL_DATA.categories[categoryIndex]}\nGenerated names: ${sampledList}`);
+    setNamesList([...sampledList])
   }
+
+  const namesHeaders = namesList.map((name, index) => (
+    <h3 key={index}>{name}</h3>
+  ));
 
   return (
     <main>
@@ -79,7 +84,7 @@ function App() {
       </div>
 
       <div className='line-container'>
-
+        {namesHeaders}
       </div>
     </main>
   )
