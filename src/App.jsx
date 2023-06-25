@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import PropTypes from "prop-types";
 import './App.css';
+import './generate';
+import { sample } from './generate';
 
 const MODEL_DATA = {}
 
@@ -39,12 +41,10 @@ CategorySelector.propTypes = {
 
 function App() {
 
-  const [count, setCount] = useState(0)
-
   const [categoryIndex, setCategoryIndex] = useState(0)
 
-
   function categorySwitchHandler(index, direction) {
+    console.log(categoryIndex)
     if (direction === "left") {
       setCategoryIndex(index === 0 ? MODEL_DATA.categories.length - 1 : (index - 1) % MODEL_DATA.categories.length)
     } else if (direction === "right") {
@@ -52,9 +52,15 @@ function App() {
     }
   }
 
-  function generateHandler(count) {
-    setCount(count + 1)
-    console.log(count)
+  async function generateHandler(categoryIndex) {
+    const sampleList = [];
+
+    for (let i = 0; i < 3; i++) {
+      const sampleInference = await sample(categoryIndex, MODEL_DATA);
+      sampleList.push(sampleInference);
+    }
+
+    console.log(sampleList)
   }
 
   return (
@@ -67,7 +73,7 @@ function App() {
         categorySwitchHandler={categorySwitchHandler} />
 
       <div className="card">
-        <button onClick={() => generateHandler(count)}>
+        <button onClick={() => generateHandler(categoryIndex)}>
           Generate
         </button>
       </div>
