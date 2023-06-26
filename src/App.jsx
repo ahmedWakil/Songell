@@ -41,9 +41,11 @@ CategorySelector.propTypes = {
 
 function App() {
 
+  // states to keep track of the category and the generated names
   const [categoryIndex, setCategoryIndex] = useState(0)
   const [namesList, setNamesList] = useState(["", "", ""]);
 
+  //handler for switching categories
   function categorySwitchHandler(index, direction) {
     if (direction === "left") {
       setCategoryIndex(index === 0 ? MODEL_DATA.categories.length - 1 : (index - 1) % MODEL_DATA.categories.length)
@@ -52,6 +54,7 @@ function App() {
     }
   }
 
+  //handler for the generate button, main task is get a number of names (default 3) and update the names list state
   async function generateHandler(categoryIndex, num = 3) {
     const sampledList = []
 
@@ -64,6 +67,7 @@ function App() {
     setNamesList([...sampledList])
   }
 
+  //List to contain the h3 elements that is suppoed to be displayed
   const namesHeaders = namesList.map((name, index) => (
     <h3 key={index}>{name}</h3>
   ));
