@@ -28,12 +28,11 @@ CategorySelector.propTypes = {
 }
 
 function App() {
-  //load data using fetch and useEffect hook to handle async calls we need to load this data
-  //before all of the components mount
+  //load data using fetch and useEffect hook to fetch the data
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch('/infrencing-model/encoding-data.json')
+    fetch('./infrencing-model/encoding-data.json')
       .then((response) => { return response.json() })
       .then((json) => {
         const fetchedData = {}
