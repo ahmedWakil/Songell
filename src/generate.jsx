@@ -45,9 +45,11 @@ function topK(logits, K) {
 }
 
 export async function sample(categoryIndex, modelData, maxLength = 40) {
+
     // create a infrencing session
     const session = await ort.InferenceSession.create('./infrencing-model/learned-weights-onnx.onnx');
-    console.log(`the: ${ort.env.wasm.wasmPaths}`)
+    ort.env.wasm.wasmPaths = "./"
+    console.log(ort.env.wasm.wasmPaths)
     // initial preperations for sampling
     const sosi = modelData.char_set.indexOf(modelData.sos);
     const eosi = modelData.char_set.indexOf(modelData.eos);
