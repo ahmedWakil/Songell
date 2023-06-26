@@ -1,4 +1,6 @@
 import * as ort from "onnxruntime-web";
+import { env } from "onnxruntime-web";
+env.wasm.wasmPaths = window.location.href
 
 function encodeCategory(categoryIndex, categories) {
     const K = categories.length;
@@ -48,8 +50,6 @@ export async function sample(categoryIndex, modelData, maxLength = 40) {
 
     // create a infrencing session
     const session = await ort.InferenceSession.create('./infrencing-model/learned-weights-onnx.onnx');
-    ort.env.wasm.wasmPaths = "./"
-    console.log(ort.env.wasm.wasmPaths)
     // initial preperations for sampling
     const sosi = modelData.char_set.indexOf(modelData.sos);
     const eosi = modelData.char_set.indexOf(modelData.eos);
