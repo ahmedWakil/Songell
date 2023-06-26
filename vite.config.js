@@ -13,6 +13,5 @@ export default defineConfig({
       }
     ]
   })],
-  root: './',
   base: '/Songell/'
 })
