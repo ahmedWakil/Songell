@@ -1,20 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from "prop-types";
 import './App.css';
 import './generate';
 import { sample } from './generate';
-
-const MODEL_DATA = {}
-
-await fetch('/infrencing-model/encoding-data.json')
-  .then((response) => response.json())
-  .then((json) => {
-    MODEL_DATA.eos = json.eos;
-    MODEL_DATA.sos = json.sos;
-    MODEL_DATA.char_set = json.char_set;
-    MODEL_DATA.categories = json.categories;
-    MODEL_DATA.h_size = json.h_size;
-  });
 
 function CategorySelector(props) {
 
@@ -40,6 +28,23 @@ CategorySelector.propTypes = {
 }
 
 function App() {
+  //load data using fetch and useEffect hook to handle async calls we need to load this data
+  //before all of the components mount
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    fetch('/infrencing-model/encoding-data.json')
+      .then((response) => { return response.json() })
+      .then((json) => {
+        const fetchedData = {}
+        fetchedData.eos = json.eos;
+        fetchedData.sos = json.sos;
+        fetchedData.char_set = json.char_set;
+        fetchedData.categories = json.categories;
+        fetchedData.h_size = json.h_size;
+        setData(fetchedData);
+      });
+  }, []);
 
   // states to keep track of the category and the generated names
   const [categoryIndex, setCategoryIndex] = useState(0)
@@ -48,9 +53,9 @@ function App() {
   //handler for switching categories
   function categorySwitchHandler(index, direction) {
     if (direction === "left") {
-      setCategoryIndex(index === 0 ? MODEL_DATA.categories.length - 1 : (index - 1) % MODEL_DATA.categories.length)
+      setCategoryIndex(index === 0 ? data.categories.length - 1 : (index - 1) % data.categories.length)
     } else if (direction === "right") {
-      setCategoryIndex(index === MODEL_DATA.categories.length - 1 ? 0 : (index + 1) % MODEL_DATA.categories.length)
+      setCategoryIndex(index === data.categories.length - 1 ? 0 : (index + 1) % data.categories.length)
     }
   }
 
@@ -59,11 +64,11 @@ function App() {
     const sampledList = []
 
     for (let i = 0; i < num; i++) {
-      const sampleInference = await sample(categoryIndex, MODEL_DATA);
+      const sampleInference = await sample(categoryIndex, data);
       sampledList.push(sampleInference)
     }
 
-    console.log(`Category: ${MODEL_DATA.categories[categoryIndex]}\nGenerated names: ${sampledList}`);
+    console.log(`Category: ${data.categories[categoryIndex]}\nGenerated names: ${sampledList}`);
     setNamesList([...sampledList])
   }
 
@@ -76,10 +81,10 @@ function App() {
     <main>
       <h1>Songell</h1>
       <h2>A Fantasy Name generator for your next RPG adventure</h2>
-      <CategorySelector
+      {data && <CategorySelector
         categoryIndex={categoryIndex}
-        categories={MODEL_DATA.categories}
-        categorySwitchHandler={categorySwitchHandler} />
+        categories={data.categories}
+        categorySwitchHandler={categorySwitchHandler} />}
 
       <div className="card">
         <button onClick={() => generateHandler(categoryIndex)}>
