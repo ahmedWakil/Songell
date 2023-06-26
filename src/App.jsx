@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import PropTypes from "prop-types";
 import './App.css';
-import './generate';
 import { sample } from './generate';
 
 function CategorySelector(props) {
