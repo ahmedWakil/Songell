@@ -5,7 +5,7 @@ from network import LSTMModel
 
 
 def main():
-    with open('../public/infrencing-model/encoding-data.json', 'r', encoding='utf-8') as f:
+    with open('../public/inferencing-model/encoding-data.json', 'r', encoding='utf-8') as f:
         encoding = json.load(f)
 
     categories = encoding['categories']
@@ -17,9 +17,10 @@ def main():
     model = LSTMModel(N, h_size, N, K)
 
     try:
-        model.load_state_dict(torch.load('../model/learned-weights.pth'))
+        model.load_state_dict(torch.load(
+            '../public/inferencing-model/learned-weights.pth'))
     except FileNotFoundError:
-        print('A trained model was not found at location "/model/learned-weights.pth"')
+        print('A trained model was not found at location "/public/inferencing-model/learned-weights.pth"')
 
     model.eval()
     category_tensor = torch.zeros(1, K)
@@ -35,11 +36,13 @@ def main():
     torch.onnx.export(
         model,
         (category_tensor, input_tensor, hidden, cell),
-        '../public/infrencing-model/learned-weights-onnx.onnx',
+        '../public/inferencing-model/learned-weights-onnx.onnx',
         export_params=True,
         input_names=['category', 'input', 'hiddenIN', 'cellIN'],
         output_names=['output', 'hiddenOUT', 'cellOUT'],
         verbose=True)
+
+    print("...done")
 
 
 if __name__ == '__main__':

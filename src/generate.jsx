@@ -1,5 +1,6 @@
 import * as ort from "onnxruntime-web";
 import { env } from "onnxruntime-web";
+// set custom path variable so that the static webassembly code is fetchign from the correct location
 env.wasm.wasmPaths = window.location.href
 
 function encodeCategory(categoryIndex, categories) {
@@ -49,7 +50,7 @@ function topK(logits, K) {
 export async function sample(categoryIndex, modelData, maxLength = 40) {
 
     // create a infrencing session
-    const session = await ort.InferenceSession.create('./infrencing-model/learned-weights-onnx.onnx');
+    const session = await ort.InferenceSession.create('./inferencing-model/learned-weights-onnx.onnx');
     // initial preperations for sampling
     const sosi = modelData.char_set.indexOf(modelData.sos);
     const eosi = modelData.char_set.indexOf(modelData.eos);
@@ -66,7 +67,7 @@ export async function sample(categoryIndex, modelData, maxLength = 40) {
         const outputMap = await session.run(feed);
         // choose a random letter from the top K largest class probabilities
         if (sample.length === 0) {
-            letterIndex = topK(outputMap.output, 10);
+            letterIndex = topK(outputMap.output, 12);
         } else {
             letterIndex = topK(outputMap.output, 2);
         }

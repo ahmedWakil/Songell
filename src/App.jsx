@@ -31,7 +31,7 @@ function App() {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch('./infrencing-model/encoding-data.json')
+    fetch('./inferencing-model/encoding-data.json')
       .then((response) => { return response.json() })
       .then((json) => {
         const fetchedData = {}
@@ -46,7 +46,7 @@ function App() {
 
   // states to keep track of the category and the generated names
   const [categoryIndex, setCategoryIndex] = useState(0)
-  const [namesList, setNamesList] = useState(["", "", ""]);
+  const [namesList, setNamesList] = useState([" ", " ", " "]);
 
   //handler for switching categories
   function categorySwitchHandler(index, direction) {

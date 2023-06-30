@@ -10,7 +10,9 @@ import matplotlib.pyplot as plt
 import time
 import math
 
-PATH = '../data/names/*.txt'
+# path to model data this string will match all txt files with the title being the category
+# the contents of the file being the names
+PATH = '../data/fantasy-names/*.txt'
 IGNORE = {'1', '/', '\xa0', '\n', '\r', ' '}
 
 
@@ -25,7 +27,8 @@ def timeSince(since):
 if __name__ == '__main__':
     start = time.time()
 
-    n_iterations = 75000
+    # Hyperparameters
+    n_iterations = 100000
     print_every = 5000
     plot_every = 500
     all_losses = []
@@ -35,10 +38,13 @@ if __name__ == '__main__':
 
     h_size = 128
 
+    # Loading all of the data
     data = Data(PATH, IGNORE, sos='$', eos='&')
     k_categories = len(data.all_categories)
     c_characters = len(data.all_chars)
 
+    # Initializing the model, criterion for measing loss, and the optimizer which will handle our
+    # stocastic gradient decent
     model = LSTMModel(c_characters, h_size, c_characters, k_categories)
     criterion = nn.NLLLoss()
     optimizer = torch.optim.SGD(
@@ -65,7 +71,8 @@ if __name__ == '__main__':
 
     plt.figure()
     plt.plot(all_losses)
-    plt.savefig('../model/losses.png')
+    plt.savefig('../public/inferencing-model/losses.png')
+    print("...Graphed losses")
 
     encoding_data = {}
     encoding_data["sos"] = '$'
@@ -74,8 +81,11 @@ if __name__ == '__main__':
     encoding_data["categories"] = data.all_categories
     encoding_data["h_size"] = h_size
 
-    with open('../model/encoding-data.json', 'w', encoding='utf-8') as f:
+    with open('../public/inferencing-model/encoding-data.json', 'w', encoding='utf-8') as f:
         json.dump(encoding_data, f, ensure_ascii=False, indent=4)
+    print("...Created json file with model data")
 
-    torch.save(model.state_dict(), '../model/Learned-weights.pth')
+    torch.save(model.state_dict(),
+               '../public/inferencing-model/learned-weights.pth')
+    print("...Saved model weights in pytorch's state dictionary")
     print("...done")

@@ -7,7 +7,7 @@ import json
 
 def generate(category, count=1):
 
-    with open('../model/encoding-data.json', 'r', encoding='utf-8') as f:
+    with open('../public/inferencing-model/encoding-data.json', 'r', encoding='utf-8') as f:
         encoding = json.load(f)
 
     categories = encoding['categories']
@@ -20,9 +20,10 @@ def generate(category, count=1):
 
     model = LSTMModel(N, h_size, N, K)
     try:
-        model.load_state_dict(torch.load('../model/learned-weights.pth'))
+        model.load_state_dict(torch.load(
+            '../public/inferencing-model/learned-weights.pth'))
     except FileNotFoundError:
-        print('A trained model was not found at location "/model/learned-weights.pth"')
+        print('A trained model was not found at location "/public/inferencing-model/learned-weights.pth"')
     model.eval()
 
     samples = []
@@ -45,7 +46,7 @@ def stringify(l: list, direction=1, seperator=' '):
 
 
 def main():
-    with open('../model/encoding-data.json', 'r', encoding='utf-8') as f:
+    with open('../public/inferencing-model/encoding-data.json', 'r', encoding='utf-8') as f:
         encoding = json.load(f)
 
     categories = encoding['categories']
