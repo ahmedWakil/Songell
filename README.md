@@ -7,6 +7,8 @@ sequence to make a name.
 
 \<sos\> H a l e n a \<eos\>
 
+Visit <a href="https://ahmedwakil.github.io/Songell/">this</a> page to use the live WebApp
+
 # Some technical details
 A character level language model predicts characters of a word as a sequence. In this section I will try to briefly breakdown
 some of the technical details of how all of this works.
